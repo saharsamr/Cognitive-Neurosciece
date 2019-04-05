@@ -35,10 +35,10 @@ def next_rk4(u, t, m, n, h, dt):
     n_k4 = dt * d_n(new_u, new_n)
     h_k4 = dt * d_h(new_u, new_h)
 
-    u = u + (1 / 6) * (u_k1 + u_k2 + u_k3 + u_k4)
-    m = m + (1 / 6) * (m_k1 + m_k2 + m_k3 + m_k4)
-    n = n + (1 / 6) * (n_k1 + n_k2 + n_k3 + n_k4)
-    h = h + (1 / 6) * (h_k1 + h_k2 + h_k3 + h_k4)
+    u = u + (1 / 6) * (u_k1 + 2*u_k2 + 2*u_k3 + u_k4)
+    m = m + (1 / 6) * (m_k1 + 2*m_k2 + 2*m_k3 + m_k4)
+    n = n + (1 / 6) * (n_k1 + 2*n_k2 + 2*n_k3 + n_k4)
+    h = h + (1 / 6) * (h_k1 + 2*h_k2 + 2*h_k3 + h_k4)
 
     return u, m, n, h
 
@@ -86,7 +86,7 @@ def d_h(u, h):
 
 
 def I(t):
-    if 0 <= t <= 0.2:
+    if 0 <= t <= 200:
         return 20
     return 0
 
@@ -101,21 +101,44 @@ def d_u(u, t, m, n, h, e_na=55, e_k=-77, e_l=-65, g_na=40, g_k=35, g_l=0.3, c=10
 
 
 if __name__ == "__main__":
-    u_l = np.zeros(1000)
-    m_l = np.zeros(1000)
-    n_l = np.zeros(1000)
-    h_l = np.zeros(1000)
+    g_na = 40
+    g_k = 35
+    e_na = 55
+    e_k = -77
+
+    u_l = np.zeros(2000)
+    m_l = np.zeros(2000)
+    n_l = np.zeros(2000)
+    h_l = np.zeros(2000)
 
     u, m, n, h = -60, 0.034, 0, 0.6
-    for i in range(0, 1000):
-        u, m, n, h = next_rk4(u, i/100000, m, n, h, .1)
+    times = np.linspace(0, 2, num=2000)
+    for i, t in enumerate(times):
+        u, m, n, h = next_rk4(u, t, m, n, h, .1)
         u_l[i] = u
         m_l[i] = m
         n_l[i] = n
         h_l[i] = h
 
     plt.figure("action potential")
-    plt.plot(u_l)
+    plt.plot(times, u_l)
+
+    plt.figure("parameters-time")
+    plt.plot(times, n_l, color="r")
+    plt.plot(times, m_l, color="g")
+    plt.plot(times, h_l, color="b")
+
+    g_na_l = np.multiply(m_l**3, h_l) * g_na
+    g_k_l = n_l**4 * g_k
+    plt.figure("g_k and g_na")
+    plt.plot(times, g_k_l, color="r")
+    plt.plot(times, g_na_l, color="b")
+
+    i_na_l = np.multiply(g_na_l, (u_l - e_na))
+    i_k_l = np.multiply(g_k_l, (u_l - e_k))
+    plt.figure("K and Na currents")
+    plt.plot(times, i_k_l, color="b")
+    plt.plot(times, i_na_l, color="r")
 
     plt.show()
 
