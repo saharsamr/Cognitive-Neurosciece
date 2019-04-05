@@ -122,23 +122,33 @@ if __name__ == "__main__":
 
     plt.figure("action potential")
     plt.plot(times, u_l)
+    plt.ylabel("Membrane Voltage (mV)")
+    plt.xlabel("Time (ms)")
 
     plt.figure("parameters-time")
-    plt.plot(times, n_l, color="r")
-    plt.plot(times, m_l, color="g")
-    plt.plot(times, h_l, color="b")
+    plt.plot(times, n_l, color="r", label="n")
+    plt.plot(times, m_l, color="g", label="m")
+    plt.plot(times, h_l, color="b", label="h")
+    plt.ylabel("m, h, n")
+    plt.xlabel("Time (ms)")
+    plt.legend()
 
     g_na_l = np.multiply(m_l**3, h_l) * g_na
     g_k_l = n_l**4 * g_k
     plt.figure("g_k and g_na")
-    plt.plot(times, g_k_l, color="r")
-    plt.plot(times, g_na_l, color="b")
+    plt.plot(times, g_k_l, color="r", label="g_k")
+    plt.plot(times, g_na_l, color="b", label="g_na")
+    plt.ylabel("Conductance for Na and K Channels (mS/cm^2)")
+    plt.xlabel("Time (ms)")
+    plt.legend()
 
     i_na_l = np.multiply(g_na_l, (u_l - e_na))
     i_k_l = np.multiply(g_k_l, (u_l - e_k))
     plt.figure("K and Na currents")
-    plt.plot(times, i_k_l, color="b")
-    plt.plot(times, i_na_l, color="r")
+    plt.plot(times, i_k_l, color="b", label="K")
+    plt.plot(times, i_na_l, color="r", label="Na")
+    plt.ylabel("Current of K and Na Channels (micro A/cm^2)")
+    plt.legend()
 
     plt.show()
 
