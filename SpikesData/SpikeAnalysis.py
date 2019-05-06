@@ -3,6 +3,7 @@ from scipy.signal import butter, lfilter, find_peaks
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 
 
 def butter_lowpass(cutoff, fs, order=5):
@@ -84,5 +85,30 @@ if __name__ == "__main__":
     find_spike_samples_and_plot(cluster1, spike_activities, 'spikes for first cluster')
     find_spike_samples_and_plot(cluster2, spike_activities, 'spikes for second cluster')
     find_spike_samples_and_plot(cluster3, spike_activities, 'spikes third first cluster')
+
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(spikes)
+
+    k_means = KMeans(n_clusters=3).fit(principalComponents)
+
+    cluster1 = []
+    cluster2 = []
+    cluster3 = []
+    for i, label in enumerate(k_means.labels_):
+        if label == 0:
+            cluster1.append(principalComponents[i])
+        elif label == 1:
+            cluster2.append(principalComponents[i])
+        else:
+            cluster3.append(principalComponents[i])
+
+    plt.figure('scatter after pca')
+    axes = plt.gca()
+    axes.set_ylim([-0.0005, 0.0005])
+    axes.set_xlim([-0.00026, 0.0004])
+    plt.scatter([d[0] for d in cluster1], [d[1] for d in cluster1], c='r', label='cluster1')
+    plt.scatter([d[0] for d in cluster2], [d[1] for d in cluster2], c='b', label='cluster2')
+    plt.scatter([d[0] for d in cluster3], [d[1] for d in cluster3], c='g', label='cluster3')
+    plt.legend()
 
     plt.show()
