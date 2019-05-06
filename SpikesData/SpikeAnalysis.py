@@ -31,6 +31,16 @@ def butter_highpass_filter(data, cutoff, fs, order=5):
     return y
 
 
+def find_spike_samples_and_plot(spike_peaks, spike_activities, label):
+    plt.figure(label)
+    spikes = np.zeros((len(spike_peaks), 31))
+    for i, peak in enumerate(spike_peaks):
+        spikes[i] = spike_activities[peak - 11:peak + 20]
+        plt.plot(spikes[i] - min(spikes[i]))
+    plt.title(label)
+    return spikes
+
+
 if __name__ == "__main__":
     data = loadmat("Data.mat")
     data_one_min = data['He'][0][:1920000]
@@ -52,15 +62,27 @@ if __name__ == "__main__":
 
     plt.figure('spikes in 5 minutes')
     data_five_min = data['He'][0][:5*1920000]
+    spike_activities = butter_highpass_filter(data_five_min, 300, 32000)
     axes = plt.gca()
     axes.set_ylim([-0.0001, 0.0003])
     spike_peaks = find_peaks(spike_activities, threshold=0.000008)[0]
-    spikes = np.zeros((len(spike_peaks), 31))
-    for i, peak in enumerate(spike_peaks):
-        spikes[i] = spike_activities[peak-11:peak+20]
-        plt.plot(spikes[i]-min(spikes[i]))
-    plt.title('spikes in 5 minutes')
+    spikes = find_spike_samples_and_plot(spike_peaks, spike_activities, 'spikes in 5 minutes')
 
     k_means = KMeans(n_clusters=3).fit(spikes)
+
+    cluster1 = []
+    cluster2 = []
+    cluster3 = []
+    for i, label in enumerate(k_means.labels_):
+        if label == 0:
+            cluster1.append(spike_peaks[i])
+        elif label == 1:
+            cluster2.append(spike_peaks[i])
+        else:
+            cluster3.append(spike_peaks[i])
+
+    find_spike_samples_and_plot(cluster1, spike_activities, 'spikes for first cluster')
+    find_spike_samples_and_plot(cluster2, spike_activities, 'spikes for second cluster')
+    find_spike_samples_and_plot(cluster3, spike_activities, 'spikes third first cluster')
 
     plt.show()
