@@ -44,3 +44,11 @@ def next_rk4(v, t, omega, dt):
     return v, omega
 
 
+if __name__ == "__main__":
+    v_l = np.zeros(2000)
+
+    v, omega = -70,
+    times = np.linspace(0, 2000, 20000)
+    for i, t in enumerate(times):
+        v, omega = next_rk4(v, t, omega, .1)
+
