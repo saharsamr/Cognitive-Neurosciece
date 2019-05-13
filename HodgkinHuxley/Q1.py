@@ -2,8 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
-def next_rk4(u, t, m, n, h, dt):
-    u_k1 = dt * d_u(u, t, m, n, h)
+def next_rk4(u, t, m, n, h, dt, strength):
+    u_k1 = dt * d_u(u, t, m, n, h, strength)
     m_k1 = dt * d_m(u, m)
     n_k1 = dt * d_n(u, n)
     h_k1 = dt * d_h(u, h)
@@ -12,7 +12,7 @@ def next_rk4(u, t, m, n, h, dt):
     new_n = n + 0.5 * n_k1
     new_h = h + 0.5 * h_k1
 
-    u_k2 = dt * d_u(new_u, t+0.5*dt, new_m, new_n, new_h)
+    u_k2 = dt * d_u(new_u, t+0.5*dt, new_m, new_n, new_h, strength)
     m_k2 = dt * d_m(new_u, new_m)
     n_k2 = dt * d_n(new_u, new_n)
     h_k2 = dt * d_h(new_u, new_h)
@@ -21,7 +21,7 @@ def next_rk4(u, t, m, n, h, dt):
     new_n = n + 0.5 * n_k2
     new_h = h + 0.5 * h_k2
 
-    u_k3 = dt * d_u(new_u, t + 0.5 * dt, new_m, new_n, new_h)
+    u_k3 = dt * d_u(new_u, t + 0.5 * dt, new_m, new_n, new_h, strength)
     m_k3 = dt * d_m(new_u, new_m)
     n_k3 = dt * d_n(new_u, new_n)
     h_k3 = dt * d_h(new_u, new_h)
@@ -30,7 +30,7 @@ def next_rk4(u, t, m, n, h, dt):
     new_n = n + n_k3
     new_h = h + h_k3
 
-    u_k4 = dt * d_u(new_u, t + dt, new_m, new_n, new_h)
+    u_k4 = dt * d_u(new_u, t + dt, new_m, new_n, new_h, strength)
     m_k4 = dt * d_m(new_u, new_m)
     n_k4 = dt * d_n(new_u, new_n)
     h_k4 = dt * d_h(new_u, new_h)
@@ -85,24 +85,54 @@ def d_h(u, h):
     return alpha_h(u) * (1 - h) - beta_h(u) * h
 
 
-def I(t):
-    if 0 <= t <= 200:
-        return 20
+def I(t, strength):
+    if 0 <= t <= 20000:
+        return strength
     return 0
 
 
-def d_u(u, t, m, n, h, e_na=55, e_k=-77, e_l=-65, g_na=40, g_k=35, g_l=0.3, c=10, i=I):
+def d_u(u, t, m, n, h, strength, e_na=55, e_k=-72, e_l=-50, g_na=120, g_k=36, g_l=0.3, c=10, i=I):
     return (1 / c) * (
             (-1 * g_na * m**3 * h * (u - e_na)) +
             (-1 * g_k * n**4 * (u - e_k)) +
             (-1 * g_l * (u - e_l)) +
-            i(t)
+            i(t, strength)
     )
 
 
+def plot_strength_duration_diagram():
+    depolarization_threshold = -55
+    strengths = [i for i in range(1, 50)]
+    durations = [0 for _ in range(1, 50)]
+    u_l = np.zeros(2000)
+    m_l = np.zeros(2000)
+    n_l = np.zeros(2000)
+    h_l = np.zeros(2000)
+    for j, strength in enumerate(strengths):
+        u, m, n, h = -65, 0.034, 0, 0.6
+        times = np.linspace(0, 2, num=2000)
+        for i, t in enumerate(times):
+            u, m, n, h = next_rk4(u, t, m, n, h, .01, strength=strength)
+            u_l[i] = u
+            m_l[i] = m
+            n_l[i] = n
+            h_l[i] = h
+            if u >= depolarization_threshold:
+                durations[j] = t * 0.01
+                break
+
+    plt.figure('strength-duration')
+    plt.plot(durations, strengths)
+    min_strength = min(strengths)
+    plt.plot(durations, [min_strength for _ in durations], 'g--', label='rheobase')
+    plt.ylabel("stimulus strength")
+    plt.xlabel("stimulus duration")
+    plt.legend()
+
+
 if __name__ == "__main__":
-    g_na = 40
-    g_k = 35
+    g_na = 120
+    g_k = 36
     e_na = 55
     e_k = -77
 
@@ -111,10 +141,10 @@ if __name__ == "__main__":
     n_l = np.zeros(2000)
     h_l = np.zeros(2000)
 
-    u, m, n, h = -60, 0.034, 0, 0.6
+    u, m, n, h = -65, 0.034, 0, 0.6
     times = np.linspace(0, 2, num=2000)
     for i, t in enumerate(times):
-        u, m, n, h = next_rk4(u, t, m, n, h, .1)
+        u, m, n, h = next_rk4(u, t, m, n, h, .01, strength=20)
         u_l[i] = u
         m_l[i] = m
         n_l[i] = n
@@ -148,7 +178,10 @@ if __name__ == "__main__":
     plt.plot(times, i_k_l, color="b", label="K")
     plt.plot(times, i_na_l, color="r", label="Na")
     plt.ylabel("Current of K and Na Channels (micro A/cm^2)")
+    plt.xlabel("Time (ms)")
     plt.legend()
+
+    plot_strength_duration_diagram()
 
     plt.show()
 
