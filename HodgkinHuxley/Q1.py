@@ -2,8 +2,22 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
-def next_rk4(u, t, m, n, h, dt, strength, c=10):
-    u_k1 = dt * d_u(u, t, m, n, h, strength, c=c)
+def I(t, strength):
+    if 0 <= t <= 200:
+        return strength
+    return 0
+
+
+def I2(t, strength):
+    if 0 <= t <= 0.2:
+        return 20
+    elif 15.2 <= t <= 15.4:
+        return strength
+    return 0
+
+
+def next_rk4(u, t, m, n, h, dt, strength, c=10, i=I):
+    u_k1 = dt * d_u(u, t, m, n, h, strength, c=c, i=i)
     m_k1 = dt * d_m(u, m)
     n_k1 = dt * d_n(u, n)
     h_k1 = dt * d_h(u, h)
@@ -12,7 +26,7 @@ def next_rk4(u, t, m, n, h, dt, strength, c=10):
     new_n = n + 0.5 * n_k1
     new_h = h + 0.5 * h_k1
 
-    u_k2 = dt * d_u(new_u, t+0.5*dt, new_m, new_n, new_h, strength, c=c)
+    u_k2 = dt * d_u(new_u, t+0.5*dt, new_m, new_n, new_h, strength, c=c, i=i)
     m_k2 = dt * d_m(new_u, new_m)
     n_k2 = dt * d_n(new_u, new_n)
     h_k2 = dt * d_h(new_u, new_h)
@@ -21,7 +35,7 @@ def next_rk4(u, t, m, n, h, dt, strength, c=10):
     new_n = n + 0.5 * n_k2
     new_h = h + 0.5 * h_k2
 
-    u_k3 = dt * d_u(new_u, t + 0.5 * dt, new_m, new_n, new_h, strength, c=c)
+    u_k3 = dt * d_u(new_u, t + 0.5 * dt, new_m, new_n, new_h, strength, c=c, i=i)
     m_k3 = dt * d_m(new_u, new_m)
     n_k3 = dt * d_n(new_u, new_n)
     h_k3 = dt * d_h(new_u, new_h)
@@ -30,7 +44,7 @@ def next_rk4(u, t, m, n, h, dt, strength, c=10):
     new_n = n + n_k3
     new_h = h + h_k3
 
-    u_k4 = dt * d_u(new_u, t + dt, new_m, new_n, new_h, strength, c=c)
+    u_k4 = dt * d_u(new_u, t + dt, new_m, new_n, new_h, strength, c=c, i=i)
     m_k4 = dt * d_m(new_u, new_m)
     n_k4 = dt * d_n(new_u, new_n)
     h_k4 = dt * d_h(new_u, new_h)
@@ -43,29 +57,29 @@ def next_rk4(u, t, m, n, h, dt, strength, c=10):
     return u, m, n, h
 
 
-def next_rk4_tetraethylammonium(u, t, m, h, dt, strength, c=10):
-    u_k1 = dt * d_u_tetraethylammonium(u, t, m, h, strength, c=c)
+def next_rk4_tetraethylammonium(u, t, m, h, dt, strength, c=10, i=I):
+    u_k1 = dt * d_u_tetraethylammonium(u, t, m, h, strength, c=c, i=i)
     m_k1 = dt * d_m(u, m)
     h_k1 = dt * d_h(u, h)
     new_u = u + 0.5 * u_k1
     new_m = m + 0.5 * m_k1
     new_h = h + 0.5 * h_k1
 
-    u_k2 = dt * d_u_tetraethylammonium(new_u, t+0.5*dt, new_m, new_h, strength, c=c)
+    u_k2 = dt * d_u_tetraethylammonium(new_u, t+0.5*dt, new_m, new_h, strength, c=c, i=i)
     m_k2 = dt * d_m(new_u, new_m)
     h_k2 = dt * d_h(new_u, new_h)
     new_u = u + 0.5 * u_k2
     new_m = m + 0.5 * m_k2
     new_h = h + 0.5 * h_k2
 
-    u_k3 = dt * d_u_tetraethylammonium(new_u, t + 0.5 * dt, new_m, new_h, strength, c=c)
+    u_k3 = dt * d_u_tetraethylammonium(new_u, t + 0.5 * dt, new_m, new_h, strength, c=c, i=i)
     m_k3 = dt * d_m(new_u, new_m)
     h_k3 = dt * d_h(new_u, new_h)
     new_u = u + u_k3
     new_m = m + m_k3
     new_h = h + h_k3
 
-    u_k4 = dt * d_u_tetraethylammonium(new_u, t + dt, new_m, new_h, strength, c=c)
+    u_k4 = dt * d_u_tetraethylammonium(new_u, t + dt, new_m, new_h, strength, c=c, i=i)
     m_k4 = dt * d_m(new_u, new_m)
     h_k4 = dt * d_h(new_u, new_h)
 
@@ -116,12 +130,6 @@ def d_n(u, n):
 
 def d_h(u, h):
     return alpha_h(u) * (1 - h) - beta_h(u) * h
-
-
-def I(t, strength):
-    if 0 <= t <= 200:
-        return strength
-    return 0
 
 
 def d_u(u, t, m, n, h, strength, e_na=55, e_k=-72, e_l=-50, g_na=120, g_k=36, g_l=0.3, c=10, i=I):
@@ -225,7 +233,6 @@ if __name__ == "__main__":
     plot_strength_duration_diagram()
 
     u, m, n, h = -65, 0.034, 0, 0.6
-    times = np.linspace(0, 2, num=2000)
     for i, t in enumerate(times):
         u, m, n, h = next_rk4(u, t, m, n, h, .01, strength=20, c=20)
         u_l[i] = u
@@ -238,23 +245,33 @@ if __name__ == "__main__":
     plt.ylabel("Membrane Voltage (mV)")
     plt.xlabel("Time (ms)")
 
-    g_na = 120
-    e_na = 55
-    e_k = -77
-
-    u_l = np.zeros(2000)
-    m_l = np.zeros(2000)
-    h_l = np.zeros(2000)
-
-    u, m, h = -65, 0.034, 0.6
-    times = np.linspace(0, 2, num=2000)
+    u, m, n, h = -65, 0.034, 0, 0.6
     for i, t in enumerate(times):
-        u, m, h = next_rk4_tetraethylammonium(u, t, m, h, .1, strength=20)
+        u, m, h = next_rk4_tetraethylammonium(u, t, m, h, .01, strength=20)
         u_l[i] = u
         m_l[i] = m
         h_l[i] = h
 
     plt.figure("action potential tetraethylammonium")
+    plt.plot(times, u_l)
+    plt.ylabel("Membrane Voltage (mV)")
+    plt.xlabel("Time (ms)")
+
+    u_l = np.zeros(17000)
+    m_l = np.zeros(17000)
+    n_l = np.zeros(17000)
+    h_l = np.zeros(17000)
+
+    u, m, n, h = -65, 0.034, 0, 0.6
+    times = np.linspace(0, 17, num=17000)
+    for i, t in enumerate(times):
+        u, m, n, h = next_rk4(u, t, m, n, h, .01, strength=40, i=I2)
+        u_l[i] = u
+        m_l[i] = m
+        n_l[i] = n
+        h_l[i] = h
+
+    plt.figure("action potential with  different current")
     plt.plot(times, u_l)
     plt.ylabel("Membrane Voltage (mV)")
     plt.xlabel("Time (ms)")
