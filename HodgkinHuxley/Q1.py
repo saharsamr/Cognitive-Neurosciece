@@ -1,13 +1,14 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-
+# single stimulus
 def I(t, strength):
     if 0 <= t <= 200:
         return strength
     return 0
 
 
+# two stimulus with a delay
 def I2(t, strength):
     if 0 <= t <= 0.2:
         return 20
@@ -15,7 +16,8 @@ def I2(t, strength):
         return strength
     return 0
 
-
+# runge kutta method for hodgkin huxley model. we should update parameters parallel.
+# so in each step i should save the updated value for u, m, n, and h to use in next step.
 def next_rk4(u, t, m, n, h, dt, strength, c=10, i=I):
     u_k1 = dt * d_u(u, t, m, n, h, strength, c=c, i=i)
     m_k1 = dt * d_m(u, m)
@@ -57,6 +59,8 @@ def next_rk4(u, t, m, n, h, dt, strength, c=10, i=I):
     return u, m, n, h
 
 
+# implement runge kutta method with hodgkin huxley equation that affect the
+# presence of tetraethylammonium
 def next_rk4_tetraethylammonium(u, t, m, h, dt, strength, c=10, i=I):
     u_k1 = dt * d_u_tetraethylammonium(u, t, m, h, strength, c=c, i=i)
     m_k1 = dt * d_m(u, m)
@@ -90,6 +94,7 @@ def next_rk4_tetraethylammonium(u, t, m, h, dt, strength, c=10, i=I):
     return u, m, h
 
 
+# implement function derivatives for calculating the result.
 def alpha_m(u):
     v = u + 40
     return (v / 10) / (1 - np.exp([(-1 * v) / 10], dtype=np.float128))
@@ -149,6 +154,7 @@ def d_u_tetraethylammonium(u, t, m, h, strength, e_na=55, e_l=-50, g_na=120, g_l
     )
 
 
+# plot strength_duration diagram for finding rheobase and chronaxie
 def plot_strength_duration_diagram():
     depolarization_threshold = -55
     strengths = [i for i in range(1, 50)]
@@ -180,16 +186,22 @@ def plot_strength_duration_diagram():
 
 
 if __name__ == "__main__":
+    # plotting neuron spike:
+
+    # initial values
     g_na = 120
     g_k = 36
     e_na = 55
     e_k = -77
 
+    # lists to save value in different moment of stimulus and after that
     u_l = np.zeros(2000)
     m_l = np.zeros(2000)
     n_l = np.zeros(2000)
     h_l = np.zeros(2000)
 
+
+    # find shape o spike
     u, m, n, h = -65, 0.034, 0, 0.6
     times = np.linspace(0, 2, num=2000)
     for i, t in enumerate(times):
@@ -204,6 +216,7 @@ if __name__ == "__main__":
     plt.ylabel("Membrane Voltage (mV)")
     plt.xlabel("Time (ms)")
 
+    # plot m, n, and h in time
     plt.figure("parameters-time")
     plt.plot(times, n_l, color="r", label="n")
     plt.plot(times, m_l, color="g", label="m")
@@ -212,6 +225,7 @@ if __name__ == "__main__":
     plt.xlabel("Time (ms)")
     plt.legend()
 
+    # plot g_k and g_na in time
     g_na_l = np.multiply(m_l**3, h_l) * g_na
     g_k_l = n_l**4 * g_k
     plt.figure("g_k and g_na")
@@ -221,6 +235,7 @@ if __name__ == "__main__":
     plt.xlabel("Time (ms)")
     plt.legend()
 
+    # plot the current of K and Na channels
     i_na_l = np.multiply(g_na_l, (u_l - e_na))
     i_k_l = np.multiply(g_k_l, (u_l - e_k))
     plt.figure("K and Na currents")
@@ -230,8 +245,10 @@ if __name__ == "__main__":
     plt.xlabel("Time (ms)")
     plt.legend()
 
+    # plot strength-duration diagram
     plot_strength_duration_diagram()
 
+    # investigate the effect of increase in capacitor
     u, m, n, h = -65, 0.034, 0, 0.6
     for i, t in enumerate(times):
         u, m, n, h = next_rk4(u, t, m, n, h, .01, strength=20, c=20)
@@ -245,6 +262,7 @@ if __name__ == "__main__":
     plt.ylabel("Membrane Voltage (mV)")
     plt.xlabel("Time (ms)")
 
+    # investigate the effect of tetraethylammonium in HH equations
     u, m, n, h = -65, 0.034, 0, 0.6
     for i, t in enumerate(times):
         u, m, h = next_rk4_tetraethylammonium(u, t, m, h, .01, strength=20)
@@ -257,6 +275,7 @@ if __name__ == "__main__":
     plt.ylabel("Membrane Voltage (mV)")
     plt.xlabel("Time (ms)")
 
+    # two stimulus with 15 ms delay
     u_l = np.zeros(17000)
     m_l = np.zeros(17000)
     n_l = np.zeros(17000)
