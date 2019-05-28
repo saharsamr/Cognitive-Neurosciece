@@ -1,5 +1,6 @@
 from psychopy import visual, core, monitors, event
 from psychopy.visual.rect import Rect
+import numpy as np
 
 
 if __name__ == "__main__":
@@ -30,6 +31,8 @@ if __name__ == "__main__":
             core.wait(.1)
 
             for i in range(100):
+                if i % 10 == 0:
+                    np.random.shuffle(morph_levels)
                 index = i % 10
                 stim.setImage('../data/FaceGen/' + str(morph_levels[index]) + '.bmp')
                 stim.setPos(pos)
@@ -39,8 +42,8 @@ if __name__ == "__main__":
 
                 Rect(win, width=1., height=1.)
                 stim.setImage('../data/FaceGen/arrows.png')
-                stim.setPos((0, -.5))
-                stim.setSize((.7, .7))
+                stim.setPos((.7, -.8))
+                stim.setSize((.5, .5))
                 stim.draw()
                 win.flip()
 
