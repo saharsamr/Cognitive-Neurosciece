@@ -37,6 +37,9 @@ def plot_subjects(data, morph_levels, label):
     par, curve = curve_fit(psycho_func, morph_levels, prop_180, par0, maxfev=1000)
     plt.plot(fake_morphs, psycho_func(fake_morphs, par[0], par[1]), label='180')
 
+    plt.xlabel('Female morphing signal')
+    plt.ylabel('Proportion of female responses')
+
     plt.legend()
 
 
@@ -44,7 +47,6 @@ if __name__ == "__main__":
     path = "result/*.csv"
     morphs = [-50, -37.5, -25, -12.5, 0, 12.5, 25, 37.5, 50]
     for fname in glob.glob(path):
-        print(fname)
         data = np.genfromtxt(fname, delimiter=',')
         plot_subjects(data, morphs, fname)
     plt.show()
